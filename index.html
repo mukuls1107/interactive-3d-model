@@ -2,53 +2,209 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>One-Handed Galactic Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Responsive Hand-Controlled Universe</title>
     
     <style>
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; color: white; }
+        /* --- CORE STYLES --- */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: white;
+            user-select: none; /* Prevent text selection on touch */
+        }
+
         #input_video { display: none; }
-        #output_canvas { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 1; }
+        #output_canvas { 
+            position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 1; 
+        }
+
+        /* --- UI CONTAINER --- */
+        #ui-container {
+            position: absolute;
+            z-index: 10;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* --- RESPONSIVE LAYOUTS --- */
         
-        /* UI Container */
-        #ui-container { position: absolute; top: 20px; right: 20px; width: 280px; z-index: 10; display: flex; flex-direction: column; gap: 15px; }
+        /* Desktop/Tablet (Landscape) */
+        @media (min-width: 769px) {
+            #ui-container {
+                top: 20px;
+                right: 20px;
+                width: 300px;
+            }
+            .grid-buttons {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+        }
+
+        /* Mobile (Portrait/Small Screens) */
+        @media (max-width: 768px) {
+            #ui-container {
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                /* Gradient to make text readable over particles */
+                background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent);
+                padding-bottom: 20px;
+                padding-top: 20px;
+                align-items: center; /* Center the panel */
+            }
+            
+            .panel {
+                width: 90%; /* Almost full width */
+                max-width: 400px;
+                backdrop-filter: blur(15px) !important;
+                background: rgba(20, 20, 20, 0.6) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: 20px !important;
+            }
+
+            h2 { font-size: 16px !important; text-align: center; margin-bottom: 10px !important; }
+
+            /* Scrollable buttons for mobile */
+            .grid-buttons {
+                display: flex !important;
+                overflow-x: auto;
+                gap: 12px;
+                padding-bottom: 5px;
+                scrollbar-width: none; /* Hide scrollbar Firefox */
+                -webkit-overflow-scrolling: touch;
+            }
+            .grid-buttons::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome */
+            
+            button {
+                flex: 0 0 auto; /* Don't shrink */
+                min-width: 80px;
+                font-size: 13px;
+                padding: 12px !important;
+            }
+
+            .gesture-guide {
+                font-size: 11px !important;
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+        }
+
+        /* --- GLASSMORPHISM PANEL --- */
         .panel {
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); padding: 20px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
-        h2 { margin: 0 0 15px 0; font-size: 18px; font-weight: 500; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
-        
-        .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        h2 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            padding-bottom: 10px;
+        }
+
         button {
-            background: rgba(255, 255, 255, 0.15); border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-size: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
         }
-        button:hover { background: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
-        button.active { background: #00d2ff; color: #000; font-weight: bold; }
 
-        .color-wrapper { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-        input[type="color"] { -webkit-appearance: none; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; padding: 0; background: none; }
-        input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; padding: 0; }
-
-        /* Status & Instructions */
-        #status {
-            position: absolute; bottom: 20px; left: 20px; z-index: 10; font-size: 14px;
-            background: rgba(0,0,0,0.6); padding: 12px 18px; border-radius: 30px;
-            display: flex; align-items: center; gap: 12px; backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.1);
+        button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            color: white;
         }
-        .dot { width: 10px; height: 10px; background-color: orange; border-radius: 50%; transition: background-color 0.3s; box-shadow: 0 0 10px currentColor;}
-        
+
+        button.active {
+            background: #00d2ff;
+            color: #050505;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+        }
+
+        /* --- COLOR PICKER --- */
+        .color-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            padding: 0;
+        }
+
+        /* --- STATUS & GUIDE --- */
         .gesture-guide {
-            font-size: 12px; margin-top: 15px; opacity: 0.9; line-height: 1.6;
-            background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;
+            font-size: 12px;
+            margin-top: 15px;
+            opacity: 0.7;
+            line-height: 1.5;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 10px;
         }
         .key { color: #00d2ff; font-weight: bold; }
+
+        #status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            font-size: 13px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: orange;
+            border-radius: 50%;
+            box-shadow: 0 0 5px orange;
+        }
+
     </style>
 
-    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- MediaPipe Hands -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -56,55 +212,54 @@
     <video id="input_video" playsinline></video>
     <canvas id="output_canvas"></canvas>
 
+    <div id="status">
+        <div class="dot" id="status-dot"></div>
+        <span id="status-text">Initializing Camera...</span>
+    </div>
+
     <div id="ui-container">
         <div class="panel">
-            <h2>Cosmos Control</h2>
+            <h2>Galaxy Control</h2>
             
             <div class="grid-buttons">
                 <button onclick="setShape('solar')" class="active" id="btn-solar">Solar</button>
                 <button onclick="setShape('saturn')" id="btn-saturn">Saturn</button>
                 <button onclick="setShape('heart')" id="btn-heart">Heart</button>
                 <button onclick="setShape('flower')" id="btn-flower">Lotus</button>
-                <button onclick="setShape('buddha')" id="btn-buddha">Buddha</button>
+                <button onclick="setShape('buddha')" id="btn-buddha">Meditate</button>
                 <button onclick="setShape('sphere')" id="btn-sphere">Sphere</button>
             </div>
 
             <div class="color-wrapper">
-                <span>Particle Color</span>
+                <span style="font-size:13px; opacity:0.8">Particle Color</span>
                 <input type="color" id="colorPicker" value="#00d2ff">
             </div>
             
             <div class="gesture-guide">
-                <div style="margin-bottom:4px">👆 <b>One-Hand Controls:</b></div>
-                <div><span class="key">🤏 Pinch (Thumb+Index):</span> Control Zoom. Close to shrink, Open to expand.</div>
-                <div><span class="key">📍 Hand Position:</span> Move hand Left/Right/Up/Down to Rotate.</div>
+                <div><span class="key">🤏 Pinch:</span> Zoom</div>
+                <div><span class="key">👋 Move:</span> Rotate</div>
             </div>
         </div>
     </div>
 
-    <div id="status">
-        <div class="dot" id="status-dot"></div>
-        <span id="status-text">Requesting Camera...</span>
-    </div>
-
     <script>
-        // --- 1. Three.js Visual Setup ---
+        // --- 1. Three.js Setup (Clean Style) ---
         const canvas = document.getElementById('output_canvas');
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x050505, 0.002);
-
+        
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 30;
 
         const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance opt
 
         const universeGroup = new THREE.Group();
         scene.add(universeGroup);
 
         // --- 2. Particle System ---
-        const particleCount = 20000;
+        const particleCount = 15000;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const currentPositions = new Float32Array(particleCount * 3);
@@ -117,27 +272,33 @@
         }
         geometry.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3));
 
+        // Texture: Clean soft glow
         const getSprite = () => {
             const c = document.createElement('canvas'); c.width=32; c.height=32;
             const ctx = c.getContext('2d');
             const g = ctx.createRadialGradient(16,16,0,16,16,16);
             g.addColorStop(0,'rgba(255,255,255,1)');
             g.addColorStop(0.2,'rgba(255,255,255,0.8)');
+            g.addColorStop(0.5,'rgba(255,255,255,0.2)');
             g.addColorStop(1,'rgba(0,0,0,0)');
             ctx.fillStyle=g; ctx.fillRect(0,0,32,32);
             return c;
         };
 
         const material = new THREE.PointsMaterial({
-            size: 0.5, map: new THREE.CanvasTexture(getSprite()),
-            transparent: true, opacity: 0.8, color: 0x00d2ff,
-            blending: THREE.AdditiveBlending, depthWrite: false
+            size: 0.5,
+            map: new THREE.CanvasTexture(getSprite()),
+            transparent: true,
+            opacity: 0.9,
+            color: 0x00d2ff,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
         });
 
         const particles = new THREE.Points(geometry, material);
         universeGroup.add(particles);
 
-        // --- 3. Interaction State (One Hand) ---
+        // --- 3. Interaction State ---
         let controlState = {
             scale: 1.0,
             targetScale: 1.0,
@@ -146,13 +307,12 @@
             handActive: false
         };
 
-        // --- 4. Shapes ---
-        // (Simplified for brevity, same cool math as before)
+        // --- 4. Shape Math (Standard) ---
         function getPointSolar(idx) {
-            if (idx < particleCount * 0.15) { 
+            if (idx < particleCount * 0.15) {
                 const r = Math.random() * 4, theta = Math.random() * 6.28, phi = Math.acos(2 * Math.random() - 1);
                 return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi) };
-            } else { 
+            } else {
                 const angle = Math.random() * 6.28; const dist = 5 + Math.random() * 20; const sa = angle + dist * 0.2 + (idx%3)*(2.09);
                 return { x: Math.cos(sa) * dist, y: (Math.random() - 0.5) * (dist * 0.1), z: Math.sin(sa) * dist };
             }
@@ -192,57 +352,53 @@
         }
         window.setShape = morphTo;
 
-        // --- 5. One-Handed Control Logic ---
+        // --- 5. MediaPipe Hands (One-Handed) ---
         const videoElement = document.getElementById('input_video');
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
 
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-        // Set maxNumHands to 1 for optimization
-        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
 
         hands.onResults((results) => {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 controlState.handActive = true;
-                statusDot.style.backgroundColor = '#00ff00';
-                statusText.innerText = "Control Active (Pinch to zoom)";
+                statusDot.style.backgroundColor = '#00d2ff';
+                statusDot.style.boxShadow = "0 0 10px #00d2ff";
+                statusText.innerText = "Hand Connected";
 
                 const landmarks = results.multiHandLandmarks[0];
-                
-                // 1. PINCH LOGIC (Zoom)
-                // Distance between Thumb Tip (4) and Index Tip (8)
                 const thumb = landmarks[4];
                 const index = landmarks[8];
+                const center = landmarks[9];
+
+                // Pinch (Zoom)
                 const pinchDist = Math.sqrt(Math.pow(thumb.x - index.x, 2) + Math.pow(thumb.y - index.y, 2));
-                
-                // Pinch range is usually 0.02 (closed) to 0.2 (open)
-                // We map this to scale (0.5 to 3.0)
-                // Use a clamp to prevent extreme values
                 const pinchStrength = Math.max(0, Math.min(1, (pinchDist - 0.02) * 5)); 
                 controlState.targetScale = 0.5 + (pinchStrength * 2.5);
 
-                // 2. JOYSTICK LOGIC (Rotation)
-                // Use Middle Finger Knuckle (9) as center point
-                const center = landmarks[9];
-                
-                // Screen coordinates are 0 to 1. Center is 0.5
-                // Deadzone 0.05
+                // Rotate (Joystick)
                 const dx = center.x - 0.5;
                 const dy = center.y - 0.5;
                 
+                // Sensitivity threshold
                 controlState.rotVelY = (Math.abs(dx) > 0.05) ? dx * 0.15 : 0;
                 controlState.rotVelX = (Math.abs(dy) > 0.05) ? dy * 0.15 : 0;
 
             } else {
                 controlState.handActive = false;
                 statusDot.style.backgroundColor = 'orange';
-                statusText.innerText = "Show one hand to control";
+                statusDot.style.boxShadow = "none";
+                statusText.innerText = "Waiting for Hand...";
             }
         });
 
         async function startCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                // Request camera (Prefer front camera on mobile)
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user", width: {ideal: 640}, height: {ideal: 480} } 
+                });
                 videoElement.srcObject = stream;
                 videoElement.onloadeddata = () => {
                     videoElement.play();
@@ -254,7 +410,7 @@
                 };
             } catch (err) {
                 statusDot.style.backgroundColor = 'red';
-                statusText.innerHTML = "Camera Denied. Check HTTPS.";
+                statusText.innerHTML = "Camera Denied.";
             }
         }
         startCamera();
@@ -265,22 +421,22 @@
         function animate() {
             requestAnimationFrame(animate);
 
-            // Smooth Scale
+            // Scale Interp
             controlState.scale += (controlState.targetScale - controlState.scale) * 0.1;
             universeGroup.scale.set(controlState.scale, controlState.scale, controlState.scale);
 
-            // Apply Rotation
+            // Rotation Logic
             if (controlState.handActive) {
                 universeGroup.rotation.y += controlState.rotVelY;
                 universeGroup.rotation.x += controlState.rotVelX;
             } else {
-                universeGroup.rotation.y += 0.002; // Idle spin
-                universeGroup.rotation.x *= 0.95; // Return to level
+                universeGroup.rotation.y += 0.002;
+                universeGroup.rotation.x *= 0.95;
             }
 
-            // Particles
+            // Particle Morphing
             const pos = geometry.attributes.position;
-            const speed = 0.08;
+            const speed = 0.06;
             for(let i=0; i<particleCount; i++){
                 const ix=i*3, iy=ix+1, iz=ix+2;
                 pos.array[ix] += (targetPositions[ix] - pos.array[ix]) * speed;
